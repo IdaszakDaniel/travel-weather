@@ -1,6 +1,8 @@
 import React from 'react';
 import { MapView } from 'expo';
 import { ActivityIndicator, View } from 'react-native';
+import axios from 'axios';
+import qs from 'qs';
 
 export default class Map extends React.Component {
 
@@ -15,8 +17,31 @@ export default class Map extends React.Component {
     }
 
     componentDidMount(){
-        this.setState({mapLoaded: true})
+        this.setState({mapLoaded: true});
+        this.fetchWeatherData();
     }
+
+    fetchWeatherData(){
+        url = this.createUrl(this.state.region);
+        axios.get(url)
+            .then(res => this.props.getWeather(res));
+    }
+
+    onRegionChangeComplete = (region) => {
+        this.setState({ region });
+        this.fetchWeatherData();
+    }
+
+    createUrl = (region) => {
+        const ROOT_URL = 'https://api.openweathermap.org/data/2.5/weather?'
+        const QUERY_PARAMS =  {
+            lon: region.longitude,
+            lat: region.latitude,
+            appid: 'fe5c53e8f0ccc541e7ad349aba5e555b'
+        }
+        query = qs.stringify({ ...QUERY_PARAMS });
+        return `${ROOT_URL}${query}`;
+    } 
 
     render() {
 
@@ -32,6 +57,7 @@ export default class Map extends React.Component {
             <MapView 
                 style={{flex: 1}}
                 region={this.state.region}
+                onRegionChangeComplete={this.onRegionChangeComplete}
             />    
         );
     }
